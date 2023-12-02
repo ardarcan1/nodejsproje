@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Git reposundan kodu al
+                git url: 'https://github.com/ardarcan1/nodejsproje', branch: 'master'
+            }
+        }
+
+        stage('Install') {
+            steps {
+                // NPM ile bağımlılıkları yükle
+                sh 'npm install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Test komutunu çalıştır
+                sh 'npm test'
+            }
+        }
+    }
+}
