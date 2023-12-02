@@ -1,0 +1,12 @@
+{
+    "name": "hello-world-nodejs",
+    "version": "1.0.0",
+    "description": "Basit Node.js Hello World uygulaması",
+    "main": "app.js",
+    "scripts": {
+      "start": "node app.js"
+    },
+    "author": "arda",
+    "license": "ISC"
+  }
+  
