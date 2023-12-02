@@ -4,7 +4,8 @@
     "description": "Basit Node.js Hello World uygulaması",
     "main": "app.js",
     "scripts": {
-      "start": "node app.js"
+      "start": "node app.js",
+      "test": "echo \"No test specified\""
     },
     "author": "arda",
     "license": "ISC"
