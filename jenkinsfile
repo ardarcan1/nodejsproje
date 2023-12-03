@@ -1,25 +1,65 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials')
+        IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                // Git reposundan kodu al
                 git url: 'https://github.com/ardarcan1/nodejsproje', branch: 'master'
             }
         }
 
         stage('Install') {
             steps {
-                // NPM ile bağımlılıkları yükle
                 sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                // Test komutunu çalıştır
                 sh 'npm test'
+            }
+        }
+
+        stage('Determine Version') {
+            steps {
+                script {
+                    // Versiyon numarasını bir dosyadan oku veya varsayılan değeri kullan
+                    def version = readFile('version.txt').trim()
+                    env.VERSION = "v${version}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}:${env.VERSION}")
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Update Version') {
+            steps {
+                script {
+                    // Versiyon numarasını artır ve dosyaya yaz
+                    def version = readFile('version.txt').trim().toInteger() + 1
+                    writeFile file: 'version.txt', text: "${version}"
+                }
             }
         }
     }
