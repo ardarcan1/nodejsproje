@@ -8,7 +8,7 @@ http.createServer((request, response) => {
     response.writeHead(200, {'Content-Type': 'text/plain'});
 
     // Yanıt gövdesini "Hello World" olarak gönder
-    response.end('Hello World\n');
+    response.end('Arda World\n');
 }).listen(8000);
 
 // Konsol mesajı yazdırır
