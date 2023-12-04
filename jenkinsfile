@@ -1,11 +1,9 @@
 pipeline {
-    agent {
-        docker { 
-            image 'nodejsarda:v1.0' // Docker Hub'daki imaj adınız ve tag'ınız
-            registryUrl 'https://registry.hub.docker.com' // Docker Registry URL'niz
-            registryCredentialsId 'docker-hub-credentials1' // Docker Registry için Jenkins Credentials ID
-            reuseNode true
-        }
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials1')
+        IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
     }
 
     stages {
