@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials1')
+        DOCKERHUB_CREDENTIALS = credentials(nodejsardacred)
         IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
     }
 
