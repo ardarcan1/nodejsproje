@@ -1,6 +1,11 @@
 pipeline {
     agent any
-    
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
+        IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
+    }
+
     stages {
         stage('Checkout') {
             steps {
