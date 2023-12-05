@@ -19,20 +19,20 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}:${env.VERSION}")
+                }
+            }
+        }
+        
         stage('Determine Version') {
             steps {
                 script {
                     // Versiyon numarasını bir dosyadan oku veya varsayılan değeri kullan
                     def version = readFile('version.txt').trim()
                     env.VERSION = "v${version}"
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${env.VERSION}")
                 }
             }
         }
