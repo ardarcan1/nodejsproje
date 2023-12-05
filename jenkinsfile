@@ -4,13 +4,13 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
         IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
+        CONTAINER_NAME = 'nodejsarda' // Çalıştırmak istediğiniz container adı
     }
 
     stages {
         stage('Checkout') {
             steps {
                 script {
-                    // GitHub repository'nizi ve branch'ınızı belirtin
                     def scmInfo = checkout([ 
                         $class: 'GitSCM', 
                         branches: [[name: '*/master']],
@@ -19,7 +19,6 @@ pipeline {
                         submoduleCfg: [],
                         userRemoteConfigs: [[url: 'https://github.com/ardarcan1/nodejsproje']]
                     ])
-                    // Git commit ID'sinin ilk 7 karakterini al
                     env.GIT_COMMIT_SHORT = scmInfo.GIT_COMMIT.take(7)
                 }
             }
@@ -39,13 +38,26 @@ pipeline {
             }
         }
 
+        stage('Deploy') {
+            steps {
+                script {
+                    // Mevcut container'ı durdur ve kaldır
+                    sh "docker stop ${CONTAINER_NAME} || true"
+                    sh "docker rm ${CONTAINER_NAME} || true"
+
+                    // Yeni imaj ile container başlat ve 8000 portunu kullan
+                    sh "docker run -d -p 8000:8000 --name ${CONTAINER_NAME} ${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}"
+                }
+            }
+        }
+
         stage('Login and push to AWS ECR') {
             steps {
                 sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/h2n4d7m6'
-                sh 'docker build -t ${IMAGE_NAME} .'
                 sh "docker tag ${IMAGE_NAME}:${env.GIT_COMMIT_SHORT} public.ecr.aws/h2n4d7m6/${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}"
                 sh "docker push public.ecr.aws/h2n4d7m6/${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}"
             }
         }
     }
 }
+
