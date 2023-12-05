@@ -26,7 +26,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Determine Version') {
             steps {
                 script {
@@ -40,7 +40,7 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'nodejsardacred') {
                         dockerImage.push()
                     }
                 }
