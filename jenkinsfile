@@ -1,15 +1,22 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
-        IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
-    }
-
+    
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/ardarcan1/nodejsproje', branch: 'master'
+                script {
+                    // GitHub repository'nizi ve branch'ınızı belirtin
+                    def scmInfo = checkout([ 
+                        $class: 'GitSCM', 
+                        branches: [[name: '*/master']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[url: 'https://github.com/ardarcan1/nodejsproje']]
+                    ])
+                    // Git commit ID'sinin ilk 7 karakterini al
+                    env.GIT_COMMIT_SHORT = scmInfo.GIT_COMMIT.take(7)
+                }
             }
         }
 
@@ -22,34 +29,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${env.VERSION}")
+                    dockerImage = docker.build("${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}")
                 }
             }
         }
 
-        stage('Determine Version') {
+        stage('Login and push to AWS ECR') {
             steps {
-                script {
-                    // Versiyon numarasını bir dosyadan oku veya varsayılan değeri kullan
-                    def version = readFile('version.txt').trim()
-                    env.VERSION = "v${version}"
-                }
-            }
-        }
-
-        stage('Update Version') {
-            steps {
-                script {
-                    // Versiyon numarasını artır ve dosyaya yaz
-                    def version = readFile('version.txt').trim().toInteger() + 1
-                    writeFile file: 'version.txt', text: "${version}"
-                }
-            }
-        }
-       
-        stage('Push to DockerHub') {
-            steps {
-                sh 'docker push lloydmatereke/jenkins-docker-hub'
+                sh 'aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/h2n4d7m6'
+                sh 'docker build -t ${IMAGE_NAME} .'
+                sh "docker tag ${IMAGE_NAME}:${env.GIT_COMMIT_SHORT} public.ecr.aws/h2n4d7m6/${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}"
+                sh "docker push public.ecr.aws/h2n4d7m6/${IMAGE_NAME}:${env.GIT_COMMIT_SHORT}"
             }
         }
     }
