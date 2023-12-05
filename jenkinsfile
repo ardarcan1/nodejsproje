@@ -37,16 +37,6 @@ pipeline {
             }
         }
 
-        stage('Push to DockerHub') {
-            steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }
-
         stage('Update Version') {
             steps {
                 script {
@@ -54,6 +44,12 @@ pipeline {
                     def version = readFile('version.txt').trim().toInteger() + 1
                     writeFile file: 'version.txt', text: "${version}"
                 }
+            }
+        }
+       
+        stage('Push to DockerHub') {
+            steps {
+                sh 'docker push lloydmatereke/jenkins-docker-hub'
             }
         }
     }
