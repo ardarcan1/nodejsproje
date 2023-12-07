@@ -5,6 +5,8 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_CREDENTIALS')
         IMAGE_NAME = 'nodejsarda' // Docker Hub'daki imaj adınız
         CONTAINER_NAME = 'nodejsarda' // Çalıştırmak istediğiniz container adı
+        // Define your Slack credential ID
+        SLACK_CREDENTIAL_ID = 'SLACK-WEBHOOK'
     }
 
     stages {
@@ -59,5 +61,31 @@ pipeline {
             }
         }
     }
-}
 
+    post {
+        success {
+            withCredentials([string(credentialsId: 'SLACK-WEBHOOK', variable: 'SLACK_WEBHOOK_URL')]) {
+                script {
+                    def message = "SUCCESS"
+                    sh """
+                        curl -X POST -H 'Content-type: application/json' \\
+                        --data '{"text": "${message}"}' \\
+                        \$SLACK_WEBHOOK_URL
+                    """
+                }
+            }
+        }
+        failure {
+            withCredentials([string(credentialsId: 'SLACK-WEBHOOK', variable: 'SLACK_WEBHOOK_URL')]) {
+                script {
+                    def message = "FAILURE"
+                    sh """
+                        curl -X POST -H 'Content-type: application/json' \\
+                        --data '{"text": "${message}"}' \\
+                        \$SLACK_WEBHOOK_URL
+                    """
+                }
+            }
+        }
+    }
+}
